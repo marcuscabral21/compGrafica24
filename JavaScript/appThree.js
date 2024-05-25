@@ -9,6 +9,7 @@ import { FBXLoader } from 'FBXLoader';
 
 document.addEventListener("DOMContentLoaded", Start);
 
+var skybox;
 var cena = new THREE.Scene();
 var camaraPerspetiva = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
 var renderer = new THREE.WebGLRenderer();
@@ -32,37 +33,28 @@ var importer = new FBXLoader();
 
 var controls;
 
-// Função para criar o tabuleiro
-function criarTabuleiro() {
-    const tamanhoTabuleiro = 3; 
-    const tamanhoCasa = 1;
+function addMoon() {
+    const moonSize = 50; // Raio da esfera
+    const subdivisions = 50; // Subdivisões da esfera
 
-    const tabuleiro = new THREE.Group();
+    const moonTexture = new THREE.TextureLoader().load('Images/moon.png', function(texture){
+        texture.wrapS = THREE.RepeatWrapping; // Permitir repetição horizontal
+        texture.wrapT = THREE.RepeatWrapping; // Permitir repetição vertical
+        const repeatFactor = 10; // Defina quantas vezes a textura deve se repetir
+        texture.repeat.set(repeatFactor, repeatFactor);
+        texture.minFilter = THREE.LinearMipMapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+    });
 
-    var numero = 9;
+    const moonMaterial = new THREE.MeshBasicMaterial({ map: moonTexture });
 
-    for (let i = 0; i < tamanhoTabuleiro; i++) {
-        for (let j = 0; j < tamanhoTabuleiro; j++) {
-            const cor = ((i + j) % 2 === 0) ? 0xffffff : 0xffff00; // Alternar entre branco e amarelo
-            const geometry = new THREE.BoxGeometry(tamanhoCasa, 0.1, tamanhoCasa);
-            const material = new THREE.MeshStandardMaterial({ color: cor });
-            const casa = new THREE.Mesh(geometry, material);
-            casa.position.set(j - tamanhoTabuleiro / 2 + 0.5, 0, i - tamanhoTabuleiro / 2 + 0.5); // Centralizar o tabuleiro
-            tabuleiro.add(casa);
+    const moonGeometry = new THREE.SphereGeometry(moonSize, subdivisions, subdivisions); // Alterado para SphereGeometry
 
-            // Adicionar número em cada quadradinho
-            const numeroTextura = criarNumeroTextura(numero);
-            const numeroMaterial = new THREE.MeshBasicMaterial({ map: numeroTextura, transparent: true });
-            const numeroMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), numeroMaterial);
-            numeroMesh.position.set(j - tamanhoTabuleiro / 2 + 0.55, 0.2, i - tamanhoTabuleiro / 2 + 0.55); // Posição no canto superior direito do quadrado
-            tabuleiro.add(numeroMesh);
+    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 
-            numero--;
-        }
-    }
+    moon.position.y = -50;
 
-    // Adicionar o tabuleiro à cena
-    cena.add(tabuleiro);
+    cena.add(moon);
 }
 
 // Função para criar textura com número
@@ -78,7 +70,7 @@ function criarNumeroTextura(numero) {
     return texture;
 }
 
-function Start(){
+function Start() {
     // Configurar PointerLockControls
     controls = new PointerLockControls(camaraPerspetiva, renderer.domElement);
 
@@ -87,6 +79,9 @@ function Start(){
 
     // Cria o menu inicial
     mostrarMenuInicial();
+
+    // Adicionar lua
+    addMoon();
 
     // Criação de um foco de luz com a cor branca (#ffffff) e intensidade a 1 (intensidade normal).
     var focoLuz = new THREE.SpotLight(0xffffff, 2); // Cor branca, intensidade 1
@@ -102,6 +97,8 @@ function Start(){
     // Adicionamos a luz à cena
     cena.add(focoLuz);
 
+    cena.add(skybox);
+    
     // Posicionar a câmara
     camaraPerspetiva.position.set(0, 10, 12); // Ajuste a posição da câmera para que o tabuleiro seja centralizado e tenha uma visão mais ampla
 
@@ -130,9 +127,6 @@ function iniciarJogo() {
     var menuInicial = document.getElementById('menu-inicial');
     menuInicial.remove();
 
-    // Criar o tabuleiro de xadrez
-    criarTabuleiro();
-
     // Ativar o bloqueio do cursor para permitir a exploração da cena
     controls.lock();
 }
@@ -148,23 +142,24 @@ function mostrarMenuInicial() {
     menuInicialContainer.style.flexDirection = 'column';
     menuInicialContainer.style.justifyContent = 'center'; // Centraliza verticalmente
     menuInicialContainer.style.alignItems = 'center'; // Centraliza horizontalmente
-    menuInicialContainer.style.backgroundColor = 'black';
+    menuInicialContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Fundo preto com 80% de opacidade
     menuInicialContainer.style.top = '0'; // Posiciona o menu no topo da janela
     document.body.appendChild(menuInicialContainer);
 
     // Criar texto de boas-vindas
     var textoBoasVindas = document.createElement('div');
     textoBoasVindas.style.color = 'white'; // Define a cor do texto como branco
-    textoBoasVindas.innerHTML = '<h1>Bem-vindo ao Jogo de Cobras e Escadas</h1><p>Pressione iniciar para começar</p>';
+    textoBoasVindas.innerHTML = '<h1 style="margin-top: 20px">Tic tac Toe Game</h1><p style="margin-left: 80px;">Press start!</p>';
     menuInicialContainer.appendChild(textoBoasVindas);
 
     // Adicionar um botão de iniciar jogo
     var botaoIniciar = document.createElement('button');
     botaoIniciar.style.padding = '10px 20px';
     botaoIniciar.style.color = 'white';
-    botaoIniciar.style.backgroundColor = 'blue';
+    botaoIniciar.style.backgroundColor = 'orange';
     botaoIniciar.style.border = 'none';
-    botaoIniciar.innerHTML = 'Iniciar';
+    botaoIniciar.innerHTML = 'Start';
+    botaoIniciar.style.borderRadius = '15px';
     botaoIniciar.addEventListener('click', iniciarJogo);
     menuInicialContainer.appendChild(botaoIniciar);
 }
@@ -197,9 +192,6 @@ function voltarMenuInicial() {
     // Remover os controles do jogador
     cena.remove(controls.getObject());
     
-    // Remover o tabuleiro
-    cena.remove(tabuleiro);
-    
     // Mostrar o menu inicial novamente
     mostrarMenuInicial();
 }
@@ -208,6 +200,34 @@ var moveForward = false;
 var moveBackward = false;
 var moveLeft = false;
 var moveRight = false;
+
+// Declaração das variáveis globais
+var cena, luzDoSol, sol, skybox;
+var isDia = true; // Variável para controlar se é dia ou noite
+
+// Código para carregar as texturas e criar a skybox
+var texture_dir = new THREE.TextureLoader().load('./SkyBox/xpos.png');
+var texture_esq = new THREE.TextureLoader().load('./SkyBox/xneg.png');
+var texture_up = new THREE.TextureLoader().load('./SkyBox/ypos.png');
+var texture_dn = new THREE.TextureLoader().load('./SkyBox/yneg.png');
+var texture_bk = new THREE.TextureLoader().load('./SkyBox/zpos.png');
+var texture_ft = new THREE.TextureLoader().load('./SkyBox/zneg.png');
+
+var materialArray = [];
+
+materialArray.push(new THREE.MeshBasicMaterial({ map: texture_dir }));
+materialArray.push(new THREE.MeshBasicMaterial({ map: texture_esq }));
+materialArray.push(new THREE.MeshBasicMaterial({ map: texture_up }));
+materialArray.push(new THREE.MeshBasicMaterial({ map: texture_dn }));
+materialArray.push(new THREE.MeshBasicMaterial({ map: texture_bk }));
+materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
+
+for (var i = 0; i < 6; i++)
+    materialArray[i].side = THREE.BackSide;
+
+var skyboxGeo = new THREE.BoxGeometry(100, 100, 100);
+
+skybox = new THREE.Mesh(skyboxGeo, materialArray);
 
 function onDocumentKeyDown(event) {
     var keyCode = event.keyCode;
@@ -252,6 +272,5 @@ function loop(){
     if (moveRight) controls.moveRight(0.1);
 
     renderer.render(cena, camaraPerspetiva);
-
     requestAnimationFrame(loop);
 }
