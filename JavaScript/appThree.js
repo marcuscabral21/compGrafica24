@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", Start);
 var skybox;
 var cena = new THREE.Scene();
 var camaraPerspetiva = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+var camaraSuperior = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+var cameraAtual = camaraPerspetiva;
 var renderer = new THREE.WebGLRenderer();
 
 renderer.setSize(window.innerWidth - 15, window.innerHeight - 80);
@@ -33,6 +35,9 @@ var importer = new FBXLoader();
 
 var controls;
 
+// Variável para a lua
+var lua;
+
 function addMoon() {
     const moonSize = 50; // Raio da esfera
     const subdivisions = 50; // Subdivisões da esfera
@@ -50,11 +55,11 @@ function addMoon() {
 
     const moonGeometry = new THREE.SphereGeometry(moonSize, subdivisions, subdivisions); // Alterado para SphereGeometry
 
-    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+    lua = new THREE.Mesh(moonGeometry, moonMaterial);
 
-    moon.position.y = -50;
+    lua.position.y = -50;
 
-    cena.add(moon);
+    cena.add(lua);
 }
 
 // Função para criar textura com número
@@ -99,14 +104,16 @@ function Start() {
 
     cena.add(skybox);
     
-    // Posicionar a câmara
+    // Posicionar a câmara inicial
     camaraPerspetiva.position.set(0, 10, 12); // Ajuste a posição da câmera para que o tabuleiro seja centralizado e tenha uma visão mais ampla
-
-    // Definir a direção para a câmara olhar
     camaraPerspetiva.lookAt(0, 0, 0);
 
+    // Configurar a câmera de visão superior
+    camaraSuperior.position.set(0, 50, 0); // Posicione a câmera bem acima do tabuleiro
+    camaraSuperior.lookAt(0, 0, 0);
+
     // Renderizar a cena
-    renderer.render(cena, camaraPerspetiva);
+    renderer.render(cena, cameraAtual);
 
     document.addEventListener('click', function () {
         if (!controls.isLocked) {
@@ -114,7 +121,7 @@ function Start() {
         }
     });    
 
-    // Adicionar eventos de teclado para movimentar a câmera
+    // Adicionar eventos de teclado para movimentar a câmera e alternar entre câmeras
     document.addEventListener('keydown', onDocumentKeyDown);
     document.addEventListener('keyup', onDocumentKeyUp);
 
@@ -244,6 +251,12 @@ function onDocumentKeyDown(event) {
         case 68: // D
             moveRight = true;
             break;
+        case 49: // 1
+            cameraAtual = camaraPerspetiva;
+            break;
+        case 50: // 2
+            cameraAtual = camaraSuperior;
+            break;
     }
 }
 
@@ -271,6 +284,11 @@ function loop(){
     if (moveLeft) controls.moveRight(-0.1);
     if (moveRight) controls.moveRight(0.1);
 
-    renderer.render(cena, camaraPerspetiva);
+    // Adicionar rotação contínua para a lua
+    if (lua) {
+        lua.rotation.y += 0.01; // Ajuste a velocidade de rotação conforme necessário
+    }
+
+    renderer.render(cena, cameraAtual);
     requestAnimationFrame(loop);
 }
