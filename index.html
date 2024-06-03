@@ -1,32 +1,23 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>
-            Tic tac Toe Game
-        </title>
-        <!-- Retiramos os imports todos que tinhamos, iremos importar diretamente
-             através do ficheiro appThree.js -->
-    </head>
-    <body>
-        <!-- Como alguns browsers não suportam nativamente a importação dinâmica (importmaps),
-             temos que importar este script de forma a garantir que a importação de bibliotecas
-             externas de forma dinâmica -->
-        <script async="" src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<head>
+    <title>Tic Tac Toe Game</title>
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.151.2/build/three.module.js",
+                "FBXLoader": "https://unpkg.com/three@0.151.2/examples/jsm/loaders/FBXLoader.js",
+                "PointerLockControls": "https://unpkg.com/three@0.151.2/examples/jsm/controls/PointerLockControls.js"
+            }
+        }
+    </script>
+    <script type="module" src="./JavaScript/appThree.js"></script>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.min.js"></script>
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.min.js"></script>
 
-             <!-- Aqui especificamos as bibliotecas externas a serem utilizadas na nossa aplicação-->
-             <script type="importmap">
-                {
-                    "imports": {
-                        "three": "https://unpkg.com/three@0.151.2/build/three.module.js",
-                        "FBXLoader": "https://unpkg.com/three@0.151.2/examples/jsm/loaders/FBXLoader.js",
-                        "PointerLockControls": "https://unpkg.com/three@0.151.2/examples/jsm/controls/PointerLockControls.js"   
-                    }
-                }
-             </script>
-
-        <!-- Aqui atualizamos o script para ser do tipo "module", que nos vai permitir
-             usar as bibliotecas da ThreeJS de forma modular -->
-        <script type="module" src="./JavaScript/appThree.js"></script>
-        </body>
-        
+</body>
 </html>
