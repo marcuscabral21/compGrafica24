@@ -3,8 +3,6 @@ import * as THREE from 'https://unpkg.com/three@0.126/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.126/examples/jsm/controls/OrbitControls.js';
 // Importação da biblioteca que nos permite explorar a nossa cena através do importmap
 import { PointerLockControls } from 'PointerLockControls';
-
-// Importação da biblioteca que nos permite importar objetos 3D em formato FBX baseada no importmap
 import { FBXLoader } from 'FBXLoader';
 
 document.addEventListener("DOMContentLoaded", Start);
@@ -31,35 +29,26 @@ renderer.setClearColor(0xaaaaaa);
 
 document.body.appendChild(renderer.domElement);
 
-// Variável que guardará o objeto importado
 var objetoImportado;
-
-// Variável que irá guardar o controlador de animações do objeto importado
 var mixerAnimacao;
-
-// Variável que é responsável por controlar o tempo da aplicação
 var relogio = new THREE.Clock();
-
-// Variável com o objeto responsável por importar ficheiros FBX
 var importer = new FBXLoader();
-
 var controls;
-
-// Variável para a lua
 var lua;
 
 var pieces, cameraInitialPosition, boardInitialPosition;
 var gameOver = false;
 
+var asteroide;
 
 function addMoon() {
-    const moonSize = 50; // Raio da esfera
-    const subdivisions = 50; // Subdivisões da esfera
+    const moonSize = 50;
+    const subdivisions = 50;
 
     const moonTexture = new THREE.TextureLoader().load('Images/moon.png', function(texture){
-        texture.wrapS = THREE.RepeatWrapping; // Permitir repetição horizontal
-        texture.wrapT = THREE.RepeatWrapping; // Permitir repetição vertical
-        const repeatFactor = 10; // Defina quantas vezes a textura deve se repetir
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        const repeatFactor = 10;
         texture.repeat.set(repeatFactor, repeatFactor);
         texture.minFilter = THREE.LinearMipMapLinearFilter;
         texture.magFilter = THREE.LinearFilter;
@@ -625,28 +614,16 @@ function Start() {
 
     // Configurar PointerLockControls
     controls = new PointerLockControls(camaraPerspetiva, renderer.domElement);
-
-    // Adiciona o PointerLockControls à cena
     cena.add(controls.getObject());
 
-    // Cria o menu inicial
     mostrarMenuInicial();
-
-    // Adicionar lua
     addMoon();
 
-    // Criação de um foco de luz com a cor branca (#ffffff) e intensidade a 1 (intensidade normal).
-    var focoLuz = new THREE.SpotLight(0xffffff, 2); // Cor branca, intensidade 1
-
-    // Mudar a posição da luz para ficar 5 unidades acima da câmera e 10 unidades para a frente
+    var focoLuz = new THREE.SpotLight(0xffffff, 2);
     focoLuz.position.set(0, 5, 10);
-
-    // Dizemos a light para ficar a apontar para a posição do centro do tabuleiro.
-    focoLuz.target.position.set(0, 0, 0); // Define o alvo da luz para o centro do tabuleiro
-    cena.add(focoLuz.target); // Adiciona o alvo da luz à cena
-    focoLuz.target.updateMatrixWorld(); // Atualiza a posição do alvo no mundo
-
-    // Adicionamos a luz à cena
+    focoLuz.target.position.set(0, 0, 0);
+    cena.add(focoLuz.target);
+    focoLuz.target.updateMatrixWorld();
     cena.add(focoLuz);
 
     cena.add(skybox);
@@ -655,11 +632,9 @@ function Start() {
     camaraPerspetiva.position.set(0, 10, 12); // Ajuste a posição da câmera para que o tabuleiro seja centralizado e tenha uma visão mais ampla
     camaraPerspetiva.lookAt(0, 0, 0);
 
-    // Configurar a câmera de visão superior
-    camaraSuperior.position.set(0, 50, 0); // Posicione a câmera bem acima do tabuleiro
+    camaraSuperior.position.set(0, 50, 0);
     camaraSuperior.lookAt(0, 0, 0);
 
-    // Renderizar a cena
     renderer.render(cena, cameraAtual);
 
      document.addEventListener('click', function () {
@@ -669,11 +644,10 @@ function Start() {
        
  });
 
-    // Adicionar eventos de teclado para movimentar a câmera e alternar entre câmeras
     document.addEventListener('keydown', onDocumentKeyDown);
     document.addEventListener('keyup', onDocumentKeyUp);
 
-    // Iniciar o loop de animação
+    adicionarObjeto3D(); // Adicionar o objeto 3D aqui
     loop();
 
     // Adicionar a mesa e o tabuleiro
@@ -682,7 +656,6 @@ function Start() {
 }
 
 function iniciarJogo() {
-    // Remover o menu inicial
     var menuInicial = document.getElementById('menu-inicial');
     menuInicial.remove();
     addTextoBemVindo()
@@ -696,7 +669,6 @@ function iniciarJogo() {
 }
 
 function mostrarMenuInicial() {
-    // Criar o contêiner do menu inicial
     var menuInicialContainer = document.createElement('div');
     menuInicialContainer.id = 'menu-inicial';
     menuInicialContainer.style.position = 'absolute';
@@ -704,10 +676,10 @@ function mostrarMenuInicial() {
     menuInicialContainer.style.height = '100%';
     menuInicialContainer.style.display = 'flex';
     menuInicialContainer.style.flexDirection = 'column';
-    menuInicialContainer.style.justifyContent = 'center'; // Centraliza verticalmente
-    menuInicialContainer.style.alignItems = 'center'; // Centraliza horizontalmente
-    menuInicialContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Fundo preto com 80% de opacidade
-    menuInicialContainer.style.top = '0'; // Posiciona o menu no topo da janela
+    menuInicialContainer.style.justifyContent = 'center';
+    menuInicialContainer.style.alignItems = 'center';
+    menuInicialContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    menuInicialContainer.style.top = '0';
     document.body.appendChild(menuInicialContainer);
 
     // Criar texto de boas-vindas com efeito 3D
@@ -716,7 +688,6 @@ function mostrarMenuInicial() {
     textoBoasVindas.style.color = 'white'; // Define a cor do texto como branco
     menuInicialContainer.appendChild(textoBoasVindas);
 
-    // Adicionar um botão de iniciar jogo
     var botaoIniciar = document.createElement('button');
     botaoIniciar.style.padding = '10px 20px';
     botaoIniciar.style.color = 'white';
@@ -777,33 +748,22 @@ function mostrarMenuInicial() {
 
 // Função para criar o botão "Voltar ao Menu"
 function criarBotaoVoltarMenu() {
-    // Criar o botão
     var botaoVoltar = document.createElement('button');
     botaoVoltar.style.position = 'absolute';
-    botaoVoltar.style.top = '20px'; // Ajuste a posição conforme necessário
-    botaoVoltar.style.right = '20px'; // Ajuste a posição conforme necessário
+    botaoVoltar.style.top = '20px';
+    botaoVoltar.style.right = '20px';
     botaoVoltar.style.padding = '10px 20px';
     botaoVoltar.style.color = 'white';
     botaoVoltar.style.backgroundColor = 'blue';
     botaoVoltar.style.border = 'none';
     botaoVoltar.innerHTML = 'Voltar ao Menu';
-    
-    // Adicionar evento de clique para voltar ao menu
     botaoVoltar.addEventListener('click', voltarMenuInicial);
-    
-    // Adicionar o botão ao corpo do documento
     document.body.appendChild(botaoVoltar);
 }
 
-// Função para voltar ao menu inicial
 function voltarMenuInicial() {
-    // Limpar a cena
     cena.clear();
-    
-    // Remover os controles do jogador
     cena.remove(controls.getObject());
-    
-    // Mostrar o menu inicial novamente
     mostrarMenuInicial();
 }
 
@@ -838,7 +798,6 @@ for (var i = 0; i < 6; i++)
     materialArray[i].side = THREE.BackSide;
 
 var skyboxGeo = new THREE.BoxGeometry(100, 100, 100);
-
 skybox = new THREE.Mesh(skyboxGeo, materialArray);
 
 
@@ -846,22 +805,22 @@ skybox = new THREE.Mesh(skyboxGeo, materialArray);
 function onDocumentKeyDown(event) {
     var keyCode = event.keyCode;
     switch (keyCode) {
-        case 87: // W
+        case 87:
             moveForward = true;
             break;
-        case 83: // S
+        case 83:
             moveBackward = true;
             break;
-        case 65: // A
+        case 65:
             moveLeft = true;
             break;
-        case 68: // D
+        case 68:
             moveRight = true;
             break;
-        case 49: // 1
+        case 49:
             cameraAtual = camaraPerspetiva;
             break;
-        case 50: // 2
+        case 50:
             cameraAtual = camaraSuperior;
             break;
     }
@@ -870,28 +829,46 @@ function onDocumentKeyDown(event) {
 function onDocumentKeyUp(event) {
     var keyCode = event.keyCode;
     switch (keyCode) {
-        case 87: // W
+        case 87:
             moveForward = false;
             break;
-        case 83: // S
+        case 83:
             moveBackward = false;
             break;
-        case 65: // A
+        case 65:
             moveLeft = false;
             break;
-        case 68: // D
+        case 68:
             moveRight = false;
             break;
     }
 }
 
-function loop(){
+function adicionarObjeto3D() {
+    var textureLoader = new THREE.TextureLoader();
+    var asteroideTexture = textureLoader.load('./Images/martian-texture.png');
+    var objetoGeometry = new THREE.IcosahedronGeometry(3, 1); // Geometria menor para criar um asteroide
+    var objetoMaterial = new THREE.MeshBasicMaterial({ map: asteroideTexture }); // Material com textura
+    asteroide = new THREE.Mesh(objetoGeometry, objetoMaterial);
+
+    // Posicionar o objeto dentro do skybox
+    asteroide.position.set(0, 20, -30); // Ajuste a posição conforme necessário
+
+    // Adicionar o objeto à cena
+    cena.add(asteroide);
+}
+
+var angulo = 0;
+var velocidadeAngular = 0.008; // Ajuste a velocidade conforme necessário
+var raioOrbita = 50;// Ajuste o raio da órbita conforme necessário
+var alturaOrbita = 30; // Ajuste a altura da órbita conforme necessário
+
+function loop() {
     if (moveForward) controls.moveForward(0.1);
     if (moveBackward) controls.moveForward(-0.1);
     if (moveLeft) controls.moveRight(-0.1);
     if (moveRight) controls.moveRight(0.1);
 
-    // Adicionar rotação contínua para a lua
     if (lua) {
         lua.rotation.y += 0.01; // Ajuste a velocidade de rotação conforme necessário
     }
