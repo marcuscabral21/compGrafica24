@@ -55,36 +55,17 @@ function addMoon() {
         texture.magFilter = THREE.LinearFilter;
     });
 
-    const moonMaterial = new THREE.MeshBasicMaterial({ map: moonTexture, receiveShadow: true }); // Configure a lua para receber sombras
+    const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture });
 
-    const moonGeometry = new THREE.SphereGeometry(moonSize, subdivisions, subdivisions); // Geometria da lua
+    const moonGeometry = new THREE.SphereGeometry(moonSize, subdivisions, subdivisions);
 
     lua = new THREE.Mesh(moonGeometry, moonMaterial);
 
     lua.position.y = -50;
+    lua.castShadow = true;
+    lua.receiveShadow = true;
 
     cena.add(lua);
-
-    // Adicionar sombra da mesa na lua
-    const shadowLight = new THREE.DirectionalLight(0x000000, 0.3); // Luz direcional para criar sombra com intensidade menor
-    shadowLight.position.set(0, -50, 0); // Posição da luz abaixo da cena
-    shadowLight.castShadow = true; // Ativar sombra para a luz
-    shadowLight.shadow.mapSize.width = 1024; // Resolução da sombra
-    shadowLight.shadow.mapSize.height = 1024; // Resolução da sombra
-
-    // Configuração da câmera de sombra
-    const shadowCameraSize = 100;
-    shadowLight.shadow.camera.left = -shadowCameraSize;
-    shadowLight.shadow.camera.right = shadowCameraSize;
-    shadowLight.shadow.camera.top = shadowCameraSize;
-    shadowLight.shadow.camera.bottom = -shadowCameraSize;
-    shadowLight.shadow.camera.near = 1;
-    shadowLight.shadow.camera.far = 200;
-
-    cena.add(shadowLight); // Adicionar luz à cena
-
-    // Configurar a lua para lançar sombra
-    lua.receiveShadow = true;
 }
 
 
@@ -437,15 +418,17 @@ function checkWinner() {
     for (const condition of winConditions) {
         const [a, b, c] = condition;
         if (boardState[a[0]][a[1]] && boardState[a[0]][a[1]] === boardState[b[0]][b[1]] && boardState[a[0]][a[1]] === boardState[c[0]][c[1]]) {
-            // Retorna a peça do vencedor e exibe o menu de fim de jogo
-            showGameOverMenu(boardState[a[0]][a[1]]);
-            return boardState[a[0]][a[1]];
+            const winner = boardState[a[0]][a[1]];
+            showGameOverMenu(winner); // Exibe o menu de fim de jogo
+            alert('Player ' + winner + ' wins!'); // Exibe mensagem de vitória
+            return winner;
         }
     }
 
     // Verifica se o jogo terminou em empate e exibe o menu de fim de jogo
     if (checkGameOver()) {
         showGameOverMenu(null);
+        alert('Draw. Nice Game, Try Again!'); // Exibe mensagem de empate
         return null;
     }
 
@@ -468,14 +451,14 @@ function botPlay() {
     } while (boardState[row][col] !== ''); // Repete até encontrar uma posição vazia
 
     // Adiciona a peça do bot ao tabuleiro
-    addPiece(row, col, botPiece);}
+    addPiece(row, col, botPiece);
 
     // Verifica se há um vencedor após a jogada do bot
-    // const winner = checkWinner();
-//     if (winner) {
-//         alert('Player ' + winner + ' wins!'); // Exibe mensagem de vitória
-//     }
-// }
+    const winner = checkWinner();
+    if (winner) {
+        alert('Player ' + winner + ' wins!'); // Exibe mensagem de vitória
+    }
+}
 
 // Adiciona evento de clique no documento para manipular cliques no tabuleiro
 document.addEventListener('click', function(event) {
@@ -498,8 +481,7 @@ document.addEventListener('click', function(event) {
                 addPiece(row, col, playerPiece); // Add the player's piece to the position
                 const winner = checkWinner(); // Check if there is a winner after the player's move
                 if (winner) {
-                    alert('Player ' + winner + ' wins!'); // Display the winning message
-                    return;
+                    return; // If there is a winner, stop the function
                 }
                 botPlay(); // Execute the bot's move
                 return;
