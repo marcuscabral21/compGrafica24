@@ -1,8 +1,21 @@
-import * as THREE from 'three';
+// Importação da biblioteca ThreeJS baseada no importmap
+import * as THREE from 'https://unpkg.com/three@0.126/build/three.module.js';
+import { OrbitControls } from 'https://unpkg.com/three@0.126/examples/jsm/controls/OrbitControls.js';
+// Importação da biblioteca que nos permite explorar a nossa cena através do importmap
 import { PointerLockControls } from 'PointerLockControls';
 import { FBXLoader } from 'FBXLoader';
 
 document.addEventListener("DOMContentLoaded", Start);
+var boardState = [
+    ['', '', ''],
+    ['', '', ''],
+    ['', '', '']
+]; // Estado inicial do tabuleiro como uma matriz 3x3
+
+var playerPiece = 'X'; // Peça do jogador
+var botPiece = 'O'; // Peça do bot
+let boardSize = 7.5;
+    const cellSize = boardSize / 3; // Tamanho da célula
 
 var skybox;
 var cena = new THREE.Scene();
@@ -15,7 +28,6 @@ renderer.setSize(window.innerWidth - 15, window.innerHeight - 80);
 renderer.setClearColor(0xaaaaaa);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
 document.body.appendChild(renderer.domElement);
 
 var objetoImportado;
@@ -24,6 +36,10 @@ var relogio = new THREE.Clock();
 var importer = new FBXLoader();
 var controls;
 var lua;
+
+var pieces, cameraInitialPosition, boardInitialPosition;
+var gameOver = false;
+
 var asteroide;
 
 function addMoon() {
@@ -107,45 +123,56 @@ function addTextoBemVindo() {
 
 
 function addTable() {
-    const tableGeometry = new THREE.BoxGeometry(10, 0.5, 12.5); // Tamanho da mesa ajustado
-    const tableMaterial = new THREE.MeshLambertMaterial({ color: 0x3B414A }); // Cor da mesa
-    const table = new THREE.Mesh(tableGeometry, tableMaterial);
+  const textureLoader = new THREE.TextureLoader();
+  const tableTexture = textureLoader.load('Images/text1.jpg'); // Substitua pelo caminho para a sua textura
 
-    // Posicionar a mesa em uma localização visível
-    table.position.set(0, 2, 0); // Ajuste a altura para que fique em cima da lua
+  const tableGeometry = new THREE.BoxGeometry(10, 0.5, 12.5); // Tamanho da mesa ajustado
+  const tableMaterial = new THREE.MeshLambertMaterial({ map: tableTexture }); // Aplicando a textura
+  const table = new THREE.Mesh(tableGeometry, tableMaterial);
 
-    table.receiveShadow = true;
-    table.castShadow = true;
-    cena.add(table);
+  // Posicionar a mesa em uma localização visível
+  table.position.set(0, 2, 0); // Ajuste a altura para que fique em cima da lua
 
-    const legGeometry = new THREE.BoxGeometry(0.5, 5, 0.5);
-    const legMaterial = new THREE.MeshLambertMaterial({ color: 0x3B414A });
+  table.receiveShadow = true;
+  table.castShadow = true;
 
-    const leg1 = new THREE.Mesh(legGeometry, legMaterial);
-    leg1.position.set(table.position.x - 4.75, table.position.y - 2.75, table.position.z - 6);
-    leg1.receiveShadow = true;
-    leg1.castShadow = true;
-    cena.add(leg1);
+  const tableObject = new THREE.Object3D(); // Criando um objeto complexo para a mesa
+  tableObject.add(table); // Adicionando a parte principal da mesa ao objeto complexo
 
-    const leg2 = new THREE.Mesh(legGeometry, legMaterial);
-    leg2.position.set(table.position.x + 4.75, table.position.y - 2.75, table.position.z - 6);
-    leg2.receiveShadow = true;
-    leg2.castShadow = true;
-    cena.add(leg2);
+  const legGeometry = new THREE.BoxGeometry(0.5, 5, 0.5);
+  const legMaterial = new THREE.MeshLambertMaterial({ map: tableTexture }); 
 
-    const leg3 = new THREE.Mesh(legGeometry, legMaterial);
-    leg3.position.set(table.position.x - 4.75, table.position.y - 2.75, table.position.z + 6);
-    leg3.receiveShadow = true;
-    leg3.castShadow = true;
-    cena.add(leg3);
+  const leg1 = new THREE.Mesh(legGeometry, legMaterial);
+  leg1.position.set(table.position.x - 4.75, table.position.y - 2.75, table.position.z - 6);
+  leg1.receiveShadow = true;
+  leg1.castShadow = true;
+  tableObject.add(leg1); // Adicionando uma das pernas da mesa ao objeto complexo
 
-    const leg4 = new THREE.Mesh(legGeometry, legMaterial);
-    leg4.position.set(table.position.x + 4.75, table.position.y - 2.75, table.position.z + 6);
-    leg4.receiveShadow = true;
-    leg4.castShadow = true;
-    cena.add(leg4);
+  const leg2 = new THREE.Mesh(legGeometry, legMaterial);
+  leg2.position.set(table.position.x + 4.75, table.position.y - 2.75, table.position.z - 6);
+  leg2.receiveShadow = true;
+  leg2.castShadow = true;
+  tableObject.add(leg2); // Adicionando outra das pernas da mesa ao objeto complexo
 
-    const textureLoader = new THREE.TextureLoader();
+  const leg3 = new THREE.Mesh(legGeometry, legMaterial);
+  leg3.position.set(table.position.x - 4.75, table.position.y - 2.75, table.position.z + 6);
+  leg3.receiveShadow = true;
+  leg3.castShadow = true;
+  tableObject.add(leg3); // Adicionando outra das pernas da mesa ao objeto complexo
+
+  const leg4 = new THREE.Mesh(legGeometry, legMaterial);
+  leg4.position.set(table.position.x + 4.75, table.position.y - 2.75, table.position.z + 6);
+  leg4.receiveShadow = true;
+  leg4.castShadow = true;
+  tableObject.add(leg4); // Adicionando a última perna da mesa ao objeto complexo
+
+
+  const tableComplex = new THREE.Object3D(); // Criando um objeto complexo para a mesa e as pernas
+  tableComplex.add(tableObject); // A
+  cena.add(tableObject); // Adicionando o objeto complexo da mesa à cena
+
+
+
     textureLoader.load('Images/pngwing.com.png', function(texture) {
         console.log('Textura carregada:', texture);
 
@@ -159,7 +186,7 @@ function addTable() {
         const imageMesh = new THREE.Mesh(imageGeometry, material);
 
         // Posição inicial acima do tabuleiro para animação de flutuação
-        imageMesh.position.set(table.position.x - 2.75, table.position.y + 10.5, table.position.z - 7); // Ajuste conforme necessário
+        imageMesh.position.set(table.position.x - 2.75, table.position.y + 12.5, table.position.z - 7); // Ajuste conforme necessário
 
         // Adicionar a imagem à cena
         cena.add(imageMesh);
@@ -186,13 +213,14 @@ function addTable() {
         setTimeout(animateFloat, 3000); // Iniciar a animação de flutuação após a aterrissagem
     });
 }
-function addBoard() {
-    const boardSize = 7.5; // Tamanho do tabuleiro ajustado
-    const cellSize = boardSize / 3; // Tamanho da célula
-
+    function addBoard() {
+        const textureLoader = new THREE.TextureLoader();
+    
+        const boardSize = 7.5; // Tamanho do tabuleiro ajustado
+        const cellSize = boardSize / 3; // Tamanho da célula
     // Criar geometria para o tabuleiro
     const boardGeometry = new THREE.BoxGeometry(boardSize, 0.05, boardSize);
-    const boardMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff }); // Cor do tabuleiro
+    const boardMaterial = new THREE.MeshLambertMaterial({ map: textureLoader.load('Images/text2.jpg') }); // Aplicando a textura diretamente
     const board = new THREE.Mesh(boardGeometry, boardMaterial);
     board.name = 'board';
     // Posicionar o tabuleiro em cima da mesa
@@ -243,34 +271,71 @@ function addFlag() {
     const poleMaterial = new THREE.MeshLambertMaterial({ color: 0x3B414A }); // Cor do mastro (marrom)
     const pole = new THREE.Mesh(poleGeometry, poleMaterial);
     pole.position.set(6, 2.5, 0); // Ajuste conforme necessário
-    cena.add(pole);
-
+  
+    const flagComplex = new THREE.Object3D(); // Criando um objeto complexo para o mastro e a bandeira
+    flagComplex.add(pole); // Adicionando o mastro ao objeto complexo
+  
     // Carrega a textura da bandeira
     const loader = new THREE.TextureLoader();
     loader.load('Images/utad.png', function(texture) {
-        const flagWidth = 2;
-        const flagHeight = 1.5;
-        const flagGeometry = new THREE.PlaneGeometry(flagWidth, flagHeight);
-        const flagMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-        const flag = new THREE.Mesh(flagGeometry, flagMaterial);
-
-        // Ajuste da posição da bandeira
-        flag.position.set(pole.position.x + flagWidth / 2, pole.position.y + poleHeight / 2 - 0.1, pole.position.z); // Ajuste na posição Y para subir e um pouco para baixo para não ficar para fora
-
-        cena.add(flag);
+      const flagWidth = 2;
+      const flagHeight = 1.5;
+      const flagGeometry = new THREE.PlaneGeometry(flagWidth, flagHeight);
+      const flagMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+      const flag = new THREE.Mesh(flagGeometry, flagMaterial);
+  
+      // Ajuste da posição da bandeira
+      flag.position.set(pole.position.x + flagWidth / 2, pole.position.y + poleHeight / 2 - 1, pole.position.z); // Ajuste na posição Y para subir e um pouco para baixo para não ficar para fora
+  
+      flagComplex.add(flag); // Adicionando a bandeira ao objeto complexo
+  
+      cena.add(flagComplex); // Adicionando o objeto complexo principal da bandeira e do mastro à cena
     });
-}
+  }
 let selectedPiece = null;
 
 // Função para adicionar peça (cruz ou círculo) ao tabuleiro
 
 function addPiece(row, col, piece) {
-    const pieceTexture = piece === 'X' ? 'Images/cross.png' : piece === 'O' ? 'Images/circle.png' : null; // Textura da peça
-    const pieceGeometry = new THREE.PlaneGeometry(1.5, 1.5);
-    const pieceMaterial = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(pieceTexture), transparent: true });
-    const pieceMesh = new THREE.Mesh(pieceGeometry, pieceMaterial);
-    pieceMesh.name = piece === 'X' ? 'cross' : 'circle'; // Assign a name to the piece
+    let pieceMesh;
 
+    // Textura da peça
+    const pieceTexture = piece === 'X' ? 'Images/cross.png' : piece === 'O' ? 'Images/circle.png' : null;
+
+    if (pieceTexture) {
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load(pieceTexture);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+        // Geometria da peça
+        const radius = 0.75;
+        const segments = 64; // Aumente o número de segmentos para uma esfera mais suave
+
+        if (piece === 'X') {
+            // Criação da peça X (cilindro)
+            const height = 0.1;
+            const geometry = new THREE.CylinderGeometry(radius, radius, height, segments);
+            pieceMesh = new THREE.Mesh(geometry, material);
+            pieceMesh.rotation.x = -Math.PI / 2; // Rotacionar para que a peça fique deitada no tabuleiro
+            pieceMesh.rotation.z = Math.PI / 2; // Rotacionar para colocar na horizontal
+        } else if (piece === 'O') {
+            // Criação da peça O (esfera)
+            const geometry = new THREE.SphereGeometry(radius, segments, segments);
+            pieceMesh = new THREE.Mesh(geometry, material);
+        }
+      
+        // Posicionar a peça
+        const offsetX = (col - 1) * 2; // Ajuste para posicionar corretamente
+        const offsetY = (row - 1) * 2; // Ajuste para posicionar corretamente
+        pieceMesh.position.set(offsetX, radius, offsetY); // Ajuste para posicionar corretamente
+    }
+
+    // Adicionar a peça à cena
+    cena.add(pieceMesh);
+
+    // Animação e ajuste de posição
     const boardSize = 7.5;
     const cellSize = boardSize / 3; // Cada célula é um terço do tabuleiro
     const boardOffset = boardSize / 2; // Metade do tamanho do tabuleiro
@@ -280,7 +345,7 @@ function addPiece(row, col, piece) {
 
     const posY = 4; // Ajuste da altura para que as peças fiquem na superfície do tabuleiro
 
-    // Posição inicial fora do tabuleiro para animação de aterrissagem
+    // Posicionamento inicial fora do tabuleiro para animação de aterrissagem
     pieceMesh.position.set(posX, posY + 10, posZ); 
     pieceMesh.rotation.x = -Math.PI / 2; // Rotacionar para que a peça fique deitada no tabuleiro
     cena.add(pieceMesh);
@@ -566,12 +631,23 @@ function showGameOverMenu(winner) {
 }
 
 function Start() {
+    // Adicionando luz ambiente
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Cor branca, intensidade 0.5
+    cena.add(ambientLight);
+
+  ;
+
+    // Renderizar a cena
+    renderer.render(cena, cameraAtual);
+
+    // Configurar PointerLockControls
     controls = new PointerLockControls(camaraPerspetiva, renderer.domElement);
     cena.add(controls.getObject());
 
     mostrarMenuInicial();
     addMoon();
 
+    
     var focoLuz = new THREE.SpotLight(0xffffff, 1.0);  // Diminuir intensidade
     focoLuz.position.set(0, 5, 10);
     focoLuz.castShadow = true;
@@ -580,7 +656,7 @@ function Start() {
     var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);  // Diminuir intensidade
     directionalLight.position.set(50, 50, 50);
     directionalLight.castShadow = true;
-
+  
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
     directionalLight.shadow.camera.near = 0.5;
@@ -602,9 +678,17 @@ function Start() {
 
     cena.add(plane);
 
+    var focoLuz = new THREE.SpotLight(0xffffff, 2);
+    focoLuz.position.set(0, 5, 10);
+    focoLuz.target.position.set(0, 0, 0);
+    cena.add(focoLuz.target);
+    focoLuz.target.updateMatrixWorld();
+    cena.add(focoLuz);
+
     cena.add(skybox);
-    
-    camaraPerspetiva.position.set(0, 10, 12);
+
+    // Posicionar a câmara inicial
+    camaraPerspetiva.position.set(0, 10, 12); // Ajuste a posição da câmera para que o tabuleiro seja centralizado e tenha uma visão mais ampla
     camaraPerspetiva.lookAt(0, 0, 0);
 
     camaraSuperior.position.set(0, 50, 0);
@@ -612,23 +696,35 @@ function Start() {
 
     renderer.render(cena, cameraAtual);
 
-    document.addEventListener('click', function () {
-        if (!controls.isLocked) {
-            controls.lock();
-        }
-    });
+     document.addEventListener('click', function () {
+         if (!controls.isLocked) {
+           controls.lock();
+       }
+       
+ });
 
     document.addEventListener('keydown', onDocumentKeyDown);
     document.addEventListener('keyup', onDocumentKeyUp);
 
     adicionarObjeto3D(); // Adicionar o objeto 3D aqui
     loop();
+
+    // Adicionar a mesa e o tabuleiro
+   // addTable();
+    //addBoard();
 }
 
 function iniciarJogo() {
     var menuInicial = document.getElementById('menu-inicial');
     menuInicial.remove();
-    controls.lock();
+    addTextoBemVindo()
+
+    // Ativar o bloqueio do cursor para permitir a exploração da cena
+//    controls.lock();
+    addFlag();
+    addTable();
+   addBoard();
+   showGameOverMenu();
 }
 
 function mostrarMenuInicial() {
@@ -645,9 +741,10 @@ function mostrarMenuInicial() {
     menuInicialContainer.style.top = '0';
     document.body.appendChild(menuInicialContainer);
 
+    // Criar texto de boas-vindas com efeito 3D
     var textoBoasVindas = document.createElement('div');
-    textoBoasVindas.innerHTML = '<h1 data-text="Lunar Tic Tac Toe">Lunar Tic Tac Toe</h1><p style="text-align: center;">Press start!</p>';
-    textoBoasVindas.style.color = 'white'; // Define a cor do texto como branco
+    textoBoasVindas.style.color = 'white';
+    textoBoasVindas.innerHTML = '<h1 data-text="Lunar Tic Tac Toe">Lunar Tic Tac Toe</h1><p style="text-align: center; margin-left: 20px;">Press start!</p>';
     menuInicialContainer.appendChild(textoBoasVindas);
 
 
@@ -660,8 +757,56 @@ function mostrarMenuInicial() {
     botaoIniciar.style.borderRadius = '15px';
     botaoIniciar.addEventListener('click', iniciarJogo);
     menuInicialContainer.appendChild(botaoIniciar);
+
+    // Adicionar estilos e animações ao documento
+    var style = document.createElement('style');
+    style.innerHTML = `
+        #menu-inicial h1 {
+            color: white;
+            margin: 20px;
+            font-size: 3em;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            transform-style: preserve-3d;
+            perspective: 500px;
+        }
+
+        #menu-inicial h1::before, #menu-inicial h1::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: translateZ(-30px);
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        #menu-inicial h1::after {
+            transform: translateZ(-60px);
+            opacity: 0.2;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotateX(0) rotateY(0);
+            }
+            50% {
+                transform: translateY(-20px) rotateX(10deg) rotateY(10deg);
+            }
+        }
+
+        #menu-inicial p {
+            color: white;
+            margin-left: 80px;
+            font-size: 1.5em;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
+// Função para criar o botão "Voltar ao Menu"
 function criarBotaoVoltarMenu() {
     var botaoVoltar = document.createElement('button');
     botaoVoltar.style.position = 'absolute';
@@ -687,6 +832,12 @@ var moveBackward = false;
 var moveLeft = false;
 var moveRight = false;
 
+// Declaração das variáveis globais
+var cena, luzDoSol, sol, skybox;
+var isDia = true; // Variável para controlar se é dia ou noite
+
+// Código para carregar as texturas e
+// Código para carregar as texturas e criar a skybox
 var texture_dir = new THREE.TextureLoader().load('./SkyBox/xpos.png');
 var texture_esq = new THREE.TextureLoader().load('./SkyBox/xneg.png');
 var texture_up = new THREE.TextureLoader().load('./SkyBox/ypos.png');
@@ -708,6 +859,8 @@ for (var i = 0; i < 6; i++)
 
 var skyboxGeo = new THREE.BoxGeometry(100, 100, 100);
 skybox = new THREE.Mesh(skyboxGeo, materialArray);
+
+
 
 function onDocumentKeyDown(event) {
     var keyCode = event.keyCode;
@@ -755,11 +908,8 @@ function adicionarObjeto3D() {
     var textureLoader = new THREE.TextureLoader();
     var asteroideTexture = textureLoader.load('./Images/martian-texture.png');
     var objetoGeometry = new THREE.IcosahedronGeometry(3, 1); // Geometria menor para criar um asteroide
-    var objetoMaterial = new THREE.MeshStandardMaterial({ map: asteroideTexture }); // Material com textura
+    var objetoMaterial = new THREE.MeshBasicMaterial({ map: asteroideTexture }); // Material com textura
     asteroide = new THREE.Mesh(objetoGeometry, objetoMaterial);
-
-    asteroide.castShadow = true;
-    asteroide.receiveShadow = true;
 
     // Posicionar o objeto dentro do skybox
     asteroide.position.set(0, 20, -30); // Ajuste a posição conforme necessário
@@ -780,9 +930,8 @@ function loop() {
     if (moveRight) controls.moveRight(0.1);
 
     if (lua) {
-        lua.rotation.y += 0.01;
+        lua.rotation.y += 0.01; // Ajuste a velocidade de rotação conforme necessário
     }
-
     if (asteroide) {
         asteroide.rotation.y += 0.05;
 
@@ -791,7 +940,9 @@ function loop() {
         asteroide.position.y = lua.position.y + raioOrbita * Math.sin(angulo) + alturaOrbita;
         angulo += velocidadeAngular;
     }
+    TWEEN.update(); // Atualizar animações do TWEEN.js
 
     renderer.render(cena, cameraAtual);
     requestAnimationFrame(loop);
+    
 }
