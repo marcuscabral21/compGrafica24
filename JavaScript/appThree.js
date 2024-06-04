@@ -55,17 +55,36 @@ function addMoon() {
         texture.magFilter = THREE.LinearFilter;
     });
 
-    const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture });
+    const moonMaterial = new THREE.MeshBasicMaterial({ map: moonTexture, receiveShadow: true }); // Configure a lua para receber sombras
 
-    const moonGeometry = new THREE.SphereGeometry(moonSize, subdivisions, subdivisions);
+    const moonGeometry = new THREE.SphereGeometry(moonSize, subdivisions, subdivisions); // Geometria da lua
 
     lua = new THREE.Mesh(moonGeometry, moonMaterial);
 
     lua.position.y = -50;
-    lua.castShadow = true;
-    lua.receiveShadow = true;
 
     cena.add(lua);
+
+    // Adicionar sombra da mesa na lua
+    const shadowLight = new THREE.DirectionalLight(0x000000, 0.3); // Luz direcional para criar sombra com intensidade menor
+    shadowLight.position.set(0, -50, 0); // Posição da luz abaixo da cena
+    shadowLight.castShadow = true; // Ativar sombra para a luz
+    shadowLight.shadow.mapSize.width = 1024; // Resolução da sombra
+    shadowLight.shadow.mapSize.height = 1024; // Resolução da sombra
+
+    // Configuração da câmera de sombra
+    const shadowCameraSize = 100;
+    shadowLight.shadow.camera.left = -shadowCameraSize;
+    shadowLight.shadow.camera.right = shadowCameraSize;
+    shadowLight.shadow.camera.top = shadowCameraSize;
+    shadowLight.shadow.camera.bottom = -shadowCameraSize;
+    shadowLight.shadow.camera.near = 1;
+    shadowLight.shadow.camera.far = 200;
+
+    cena.add(shadowLight); // Adicionar luz à cena
+
+    // Configurar a lua para lançar sombra
+    lua.receiveShadow = true;
 }
 
 
