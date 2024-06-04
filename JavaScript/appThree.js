@@ -324,12 +324,13 @@ function addPiece(row, col, piece) {
             const height = 0.1;
             const geometry = new THREE.CylinderGeometry(radius, radius, height, segments);
             pieceMesh = new THREE.Mesh(geometry, material);
+            pieceMesh.rotation.x = -Math.PI / 2; // Rotacionar para que a peça fique deitada no tabuleiro
+            pieceMesh.rotation.z = Math.PI / 2; // Rotacionar para colocar na horizontal
         } else if (piece === 'O') {
             // Criação da peça O (esfera)
             const geometry = new THREE.SphereGeometry(radius, segments, segments);
             pieceMesh = new THREE.Mesh(geometry, material);
         }
-
       
         // Posicionar a peça
         const offsetX = (col - 1) * 2; // Ajuste para posicionar corretamente
