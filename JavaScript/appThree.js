@@ -141,46 +141,54 @@ function addTextoBemVindo() {
 
 
 function addTable() {
-    const textureLoader = new THREE.TextureLoader();
-    const tableTexture = textureLoader.load('Images/text1.jpg'); // Substitua pelo caminho para a sua textura
+  const textureLoader = new THREE.TextureLoader();
+  const tableTexture = textureLoader.load('Images/text1.jpg'); // Substitua pelo caminho para a sua textura
 
-    const tableGeometry = new THREE.BoxGeometry(10, 0.5, 12.5); // Tamanho da mesa ajustado
-    const tableMaterial = new THREE.MeshLambertMaterial({ map: tableTexture }); // Aplicando a textura
-    const table = new THREE.Mesh(tableGeometry, tableMaterial);
+  const tableGeometry = new THREE.BoxGeometry(10, 0.5, 12.5); // Tamanho da mesa ajustado
+  const tableMaterial = new THREE.MeshLambertMaterial({ map: tableTexture }); // Aplicando a textura
+  const table = new THREE.Mesh(tableGeometry, tableMaterial);
 
-    // Posicionar a mesa em uma localização visível
-    table.position.set(0, 2, 0); // Ajuste a altura para que fique em cima da lua
+  // Posicionar a mesa em uma localização visível
+  table.position.set(0, 2, 0); // Ajuste a altura para que fique em cima da lua
 
-    table.receiveShadow = true;
-    table.castShadow = true;
-    cena.add(table);
-  
-    const legGeometry = new THREE.BoxGeometry(0.5, 5, 0.5);
-    const legMaterial = new THREE.MeshLambertMaterial({ map: tableTexture }); 
-  
-    const leg1 = new THREE.Mesh(legGeometry, legMaterial);
-    leg1.position.set(table.position.x - 4.75, table.position.y - 2.75, table.position.z - 6);
-    leg1.receiveShadow = true;
-    leg1.castShadow = true;
-    cena.add(leg1);
+  table.receiveShadow = true;
+  table.castShadow = true;
 
-    const leg2 = new THREE.Mesh(legGeometry, legMaterial);
-    leg2.position.set(table.position.x + 4.75, table.position.y - 2.75, table.position.z - 6);
-    leg2.receiveShadow = true;
-    leg2.castShadow = true;
-    cena.add(leg2);
+  const tableObject = new THREE.Object3D(); // Criando um objeto complexo para a mesa
+  tableObject.add(table); // Adicionando a parte principal da mesa ao objeto complexo
 
-    const leg3 = new THREE.Mesh(legGeometry, legMaterial);
-    leg3.position.set(table.position.x - 4.75, table.position.y - 2.75, table.position.z + 6);
-    leg3.receiveShadow = true;
-    leg3.castShadow = true;
-    cena.add(leg3);
+  const legGeometry = new THREE.BoxGeometry(0.5, 5, 0.5);
+  const legMaterial = new THREE.MeshLambertMaterial({ map: tableTexture }); 
 
-    const leg4 = new THREE.Mesh(legGeometry, legMaterial);
-    leg4.position.set(table.position.x + 4.75, table.position.y - 2.75, table.position.z + 6);
-    leg4.receiveShadow = true;
-    leg4.castShadow = true;
-    cena.add(leg4);
+  const leg1 = new THREE.Mesh(legGeometry, legMaterial);
+  leg1.position.set(table.position.x - 4.75, table.position.y - 2.75, table.position.z - 6);
+  leg1.receiveShadow = true;
+  leg1.castShadow = true;
+  tableObject.add(leg1); // Adicionando uma das pernas da mesa ao objeto complexo
+
+  const leg2 = new THREE.Mesh(legGeometry, legMaterial);
+  leg2.position.set(table.position.x + 4.75, table.position.y - 2.75, table.position.z - 6);
+  leg2.receiveShadow = true;
+  leg2.castShadow = true;
+  tableObject.add(leg2); // Adicionando outra das pernas da mesa ao objeto complexo
+
+  const leg3 = new THREE.Mesh(legGeometry, legMaterial);
+  leg3.position.set(table.position.x - 4.75, table.position.y - 2.75, table.position.z + 6);
+  leg3.receiveShadow = true;
+  leg3.castShadow = true;
+  tableObject.add(leg3); // Adicionando outra das pernas da mesa ao objeto complexo
+
+  const leg4 = new THREE.Mesh(legGeometry, legMaterial);
+  leg4.position.set(table.position.x + 4.75, table.position.y - 2.75, table.position.z + 6);
+  leg4.receiveShadow = true;
+  leg4.castShadow = true;
+  tableObject.add(leg4); // Adicionando a última perna da mesa ao objeto complexo
+
+
+  const tableComplex = new THREE.Object3D(); // Criando um objeto complexo para a mesa e as pernas
+  tableComplex.add(tableObject); // A
+  cena.add(tableObject); // Adicionando o objeto complexo da mesa à cena
+
 
 
     textureLoader.load('Images/pngwing.com.png', function(texture) {
@@ -281,23 +289,27 @@ function addFlag() {
     const poleMaterial = new THREE.MeshLambertMaterial({ color: 0x3B414A }); // Cor do mastro (marrom)
     const pole = new THREE.Mesh(poleGeometry, poleMaterial);
     pole.position.set(6, 2.5, 0); // Ajuste conforme necessário
-    cena.add(pole);
-
+  
+    const flagComplex = new THREE.Object3D(); // Criando um objeto complexo para o mastro e a bandeira
+    flagComplex.add(pole); // Adicionando o mastro ao objeto complexo
+  
     // Carrega a textura da bandeira
     const loader = new THREE.TextureLoader();
     loader.load('Images/utad.png', function(texture) {
-        const flagWidth = 2;
-        const flagHeight = 1.5;
-        const flagGeometry = new THREE.PlaneGeometry(flagWidth, flagHeight);
-        const flagMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-        const flag = new THREE.Mesh(flagGeometry, flagMaterial);
-
-        // Ajuste da posição da bandeira
-        flag.position.set(pole.position.x + flagWidth / 2, pole.position.y + poleHeight / 2 - 1, pole.position.z); // Ajuste na posição Y para subir e um pouco para baixo para não ficar para fora
-
-        cena.add(flag);
+      const flagWidth = 2;
+      const flagHeight = 1.5;
+      const flagGeometry = new THREE.PlaneGeometry(flagWidth, flagHeight);
+      const flagMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+      const flag = new THREE.Mesh(flagGeometry, flagMaterial);
+  
+      // Ajuste da posição da bandeira
+      flag.position.set(pole.position.x + flagWidth / 2, pole.position.y + poleHeight / 2 - 1, pole.position.z); // Ajuste na posição Y para subir e um pouco para baixo para não ficar para fora
+  
+      flagComplex.add(flag); // Adicionando a bandeira ao objeto complexo
+  
+      cena.add(flagComplex); // Adicionando o objeto complexo principal da bandeira e do mastro à cena
     });
-}
+  }
 let selectedPiece = null;
 
 // Função para adicionar peça (cruz ou círculo) ao tabuleiro
@@ -722,7 +734,7 @@ function mostrarMenuInicial() {
     // Criar texto de boas-vindas com efeito 3D
     var textoBoasVindas = document.createElement('div');
     textoBoasVindas.style.color = 'white';
-    textoBoasVindas.innerHTML = '<h1 data-text="Lunar Tic Tac Toe">Lunar Tic Tac Toe</h1><p>Press start!</p>';
+    textoBoasVindas.innerHTML = '<h1 data-text="Lunar Tic Tac Toe">Lunar Tic Tac Toe</h1><p style="text-align: center; margin-left: 20px;">Press start!</p>';
     menuInicialContainer.appendChild(textoBoasVindas);
 
 
