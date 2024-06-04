@@ -48,6 +48,8 @@ function addMoon() {
     lua.position.y = -50;
     lua.castShadow = true;
     lua.receiveShadow = true;
+
+    cena.add(lua);
 }
 
 
@@ -644,7 +646,7 @@ function mostrarMenuInicial() {
     document.body.appendChild(menuInicialContainer);
 
     var textoBoasVindas = document.createElement('div');
-    textoBoasVindas.innerHTML = '<h1 data-text="Lunar Tic Tac Toe">Lunar Tic Tac Toe</h1><p>Press start!</p>';
+    textoBoasVindas.innerHTML = '<h1 data-text="Lunar Tic Tac Toe">Lunar Tic Tac Toe</h1><p style="text-align: center;">Press start!</p>';
     textoBoasVindas.style.color = 'white'; // Define a cor do texto como branco
     menuInicialContainer.appendChild(textoBoasVindas);
 
