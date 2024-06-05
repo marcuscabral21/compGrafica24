@@ -1,0 +1,12 @@
+# Aspose.3D Wavefront OBJ Exporter
+# Copyright 2004-2024 Aspose Pty Ltd.
+# File created: 06/05/2024 17:04:45
+
+newmtl mat_62137664
+	Ka 0.2 0.2 0.2
+	Kd 0.8 0.8 0.8
+	Ke 0 0 0
+	illum 2
+	d 1
+	Tr 0
+	map_Kd pngwing.com.png

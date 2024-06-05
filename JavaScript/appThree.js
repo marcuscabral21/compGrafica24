@@ -3,7 +3,7 @@ import * as THREE from 'https://unpkg.com/three@0.126/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.126/examples/jsm/controls/OrbitControls.js';
 // Importação da biblioteca que nos permite explorar a nossa cena através do importmap
 import { PointerLockControls } from 'PointerLockControls';
-import { FBXLoader } from 'FBXLoader';
+import { FBXLoader } from 'FBXLoader'; // Importe o FBXLoader como um módulo
 
 document.addEventListener("DOMContentLoaded", Start);
 var boardState = [
@@ -170,48 +170,48 @@ function addTable() {
   const tableComplex = new THREE.Object3D(); // Criando um objeto complexo para a mesa e as pernas
   tableComplex.add(tableObject); // A
   cena.add(tableObject); // Adicionando o objeto complexo da mesa à cena
+  textureLoader.load('Images/pngwing.com.png', function(texture) {
+    console.log('Textura carregada:', texture);
+
+    // Criar material usando a textura com transparência e dos dois lados
+    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+
+    // Ajustar a escala da geometria para que a imagem seja visível
+    const imageGeometry = new THREE.PlaneGeometry(10, 10); // Ajuste o tamanho conforme necessário
+
+    // Criar um objeto para representar a imagem
+    const imageMesh = new THREE.Mesh(imageGeometry, material);
+
+    // Posição inicial acima do tabuleiro para animação de flutuação
+    imageMesh.position.set(table.position.x - 2.75, table.position.y + 12.5, table.position.z - 7); // Ajuste conforme necessário
+
+    // Adicionar a imagem à cena
+    cena.add(imageMesh);
+
+    // Animação de aterrissagem suave
+    function animateLanding() {
+        new TWEEN.Tween(imageMesh.position)
+            .to({ y: table.position.y + 2.5 }, 3000) // Descer suavemente em 3 segundos
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start();
+    }
+
+    // Animação de flutuação contínua
+    function animateFloat() {
+        new TWEEN.Tween(imageMesh.position)
+            .to({ y: table.position.y + 3 }, 1500) // Subir um pouco
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .yoyo(true) // Fazer a animação de ida e volta
+            .repeat(Infinity) // Repetir infinitamente
+            .start();
+    }
+
+    animateLanding(); // Iniciar a animação de aterrissagem
+    setTimeout(animateFloat, 3000); // Iniciar a animação de flutuação após a aterrissagem
+});
 
 
-
-    textureLoader.load('Images/pngwing.com.png', function(texture) {
-        console.log('Textura carregada:', texture);
-
-        // Criar material usando a textura com transparência e dos dois lados
-        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
-
-        // Ajustar a escala da geometria para que a imagem seja visível
-        const imageGeometry = new THREE.PlaneGeometry(10, 10); // Ajuste o tamanho conforme necessário
-
-        // Criar um objeto para representar a imagem
-        const imageMesh = new THREE.Mesh(imageGeometry, material);
-
-        // Posição inicial acima do tabuleiro para animação de flutuação
-        imageMesh.position.set(table.position.x - 2.75, table.position.y + 12.5, table.position.z - 7); // Ajuste conforme necessário
-
-        // Adicionar a imagem à cena
-        cena.add(imageMesh);
-
-        // Animação de aterrissagem suave
-        function animateLanding() {
-            new TWEEN.Tween(imageMesh.position)
-                .to({ y: table.position.y + 2.5 }, 3000) // Descer suavemente em 3 segundos
-                .easing(TWEEN.Easing.Quadratic.Out)
-                .start();
-        }
-
-        // Animação de flutuação contínua
-        function animateFloat() {
-            new TWEEN.Tween(imageMesh.position)
-                .to({ y: table.position.y + 3 }, 1500) // Subir um pouco
-                .easing(TWEEN.Easing.Quadratic.InOut)
-                .yoyo(true) // Fazer a animação de ida e volta
-                .repeat(Infinity) // Repetir infinitamente
-                .start();
-        }
-
-        animateLanding(); // Iniciar a animação de aterrissagem
-        setTimeout(animateFloat, 3000); // Iniciar a animação de flutuação após a aterrissagem
-    });
+   
 }
     function addBoard() {
         const textureLoader = new THREE.TextureLoader();
@@ -265,6 +265,50 @@ function addTable() {
 
     cameraInitialPosition = camera.position.clone();
 }
+// function addObjectFBXOnMoon() {
+//     // Carregar o objeto FBX
+//     const loader = new THREE.FBXLoader();
+//     loader.load(
+//         'Images/astronauta.fbx',
+//         function (object) {
+//             // Carregar a textura PNG
+//             const textureLoader = new THREE.TextureLoader();
+//             textureLoader.load(
+//                 'Images/pngwing.com.png',
+//                 function (texture) {
+//                     // Aplicar a textura ao material do objeto
+//                     const material = new THREE.MeshBasicMaterial({ map: texture });
+//                     // Atribuir o material ao objeto
+//                     object.traverse(function (child) {
+//                         if (child instanceof THREE.Mesh) {
+//                             child.material = material;
+//                         }
+//                     });
+//                     // Posicionar o objeto em cima da lua
+//                     imageMesh.position.set(table.position.x - 2.75, table.position.y + 12.5, table.position.z - 7); // Ajuste conforme necessário
+//                     // Adicionar o objeto à cena
+//                     cena.add(object);
+//                 },
+//                 // Função de progresso (opcional)
+//                 function (xhr) {
+//                     console.log((xhr.loaded / xhr.total * 100) + '% carregado');
+//                 },
+//                 // Função de erro (opcional)
+//                 function (error) {
+//                     console.log('Ocorreu um erro ao carregar a textura', error);
+//                 }
+//             );
+//         },
+//         // Função de progresso (opcional)
+//         function (xhr) {
+//             console.log((xhr.loaded / xhr.total * 100) + '% carregado');
+//         },
+//         // Função de erro (opcional)
+//         function (error) {
+//             console.log('Ocorreu um erro ao carregar o objeto FBX', error);
+//         }
+//     );
+// }
 function addFlag() {
     const poleHeight = 15;
     const poleGeometry = new THREE.CylinderGeometry(0.1, 0.1, poleHeight, 32);
@@ -725,6 +769,7 @@ function iniciarJogo() {
     addFlag();
     addTable();
    addBoard();
+  // addObjectFBXOnMoon();
    showGameOverMenu();
 }
 
